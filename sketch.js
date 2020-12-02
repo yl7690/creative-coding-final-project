@@ -17,21 +17,17 @@ let lives = 19;
 let gameState = 'start';
 
 
-
-
 function setup() {
-    createCanvas(640, 480);
-
+    createCanvas(960, 720);
+    
     video = createCapture(VIDEO);
     video.hide();
-
-    video.size(width, height);
 
     face = ml5.facemesh(video, modelLoaded);
     face.on("predict", results => {
         predictions = results;
     });
-
+    
 
     rec = new p5.SpeechRec('en-US', parseResult); 
 
@@ -40,45 +36,90 @@ function setup() {
 
     rec.start(); 
 
-    for (let i=0; i<20; i++) {
+    for (let i=0; i<10; i++) {
         virus[i] = new Virus();
     }
 }
 
 
 function draw() {
+    print(gameState)
     if (gameState === 'start') {
         startMenu();
-    } else if (gameState === 'inGame') {
+    }
+    if (gameState === 'inGame') {
         inGame();
     }
+    if (gameState === 'tips') {
+        knowledge();
+    }
+    if (gameState === 'instruction') {
+        instruction();
+    }
+    if (gameState === 'over') {
+        sickScene();
+    }
+
+    
+    print(score)
+
 }
 
+
 function startMenu() {
-  background(140, 140, 255);
-  
-  fill(0);
-  textAlign(CENTER);
-  textSize(48);
-  text('Say yes to start game!', width/2, height/2);
-  
+    background(140, 140, 255);
+
+    fill(0);
+    textAlign(CENTER);
+    textSize(48);
+    text('Say start to start game!', width/2, height/2);
 }
+
+
+function knowledge() {
+    background(140, 140, 255);
+
+    fill(0);
+    textAlign(CENTER);
+    textSize(48);
+    text('What you should know before starting the game...', width/2, height/2);
+}
+
+
+function instruction() {
+    background(140, 140, 255);
+
+    fill(0);
+    textAlign(CENTER);
+    textSize(48);
+    text('How to play this game?', width/2, height/2);
+}
+
 
 function inGame() {
     background(140, 140, 255);
+    push();
+    scale(1.5);
     drawSkeleton();
   
     for (let i=0; i<virus.length; i++) {
         virus[i].view();
     
         virus[i].collideFace();
-  
+        virus[i].reset();
+//        print('x', virus[i].x);
+//        print('y', virus[i].y)
     
         textSize(25);
         fill(255, 0, 0);
         textAlign(LEFT);
         text('Score: ' + score, 20, 50);
         text('Lives Left: ' + lives, 20, 100);
+    }
+    pop();
+    
+    if (lives <= 0) {
+        gameState = 'over';
     }
 }
 
@@ -89,9 +130,8 @@ function modelLoaded() {
 
 
 function drawSkeleton() {
-    image(video, 0, 0, width, height);
-    push();
-    // scale(1.5);
+    image(video, 0, 0);
+
     for (let i = 0; i < predictions.length; i += 1) {
         const keypoints = predictions[i].scaledMesh;
 
@@ -112,31 +152,25 @@ function drawSkeleton() {
             }
         }
     }
-    pop();
 }
 
-
-function parseResult() {
-    let myChoice = rec.resultString.split(' ');
-    console.log(myChoice);
+function sickScene() {
+    background(140, 140, 255);
   
-    for (let i=0; i<myChoice.length; i++) {
-        if (myChoice[i] == "yes" && gameState === 'start') {
-            gameState = 'inGame';
-        }
-    // } else if (myChoice[i] == "no") {
-    //   startGame = false;}
-    }
-} 
+    fill(0);
+    textAlign(CENTER);
+    textSize(48);
+    text('You got sick', width/2, height/2);
+}
 
 
 class Virus {
     constructor() {
-        this.x = random(0, width);
+        this.x = random(0, 640);
         this.y = 0;
         this.size = random(15,30);
-        this.color = color(140, 140, 255);
-        this.speed = random(1, 5);
+        this.color = color(0);
+        this.speed = random(2, 5);
         this.hit = false; 
         this.in = false;
     }
@@ -147,23 +181,10 @@ class Virus {
         circle(this.x, this.y, this.size);
 
         this.y += this.speed;
-
-        if (this.y > width) {
-            this.x = random(0, width);
-            this.y = 0;
-            this.size = random(15, 30);
-            this.color = color(140, 140, 255);
-            this.speed = random(1, 5);
-            this.hitLine = false;
-            this.hitPoint = false;  
-            score += 1;
-        }
     }
   
   
     collideFace() {
-        push();
-        scale(1.5);
         for (let i = 0; i < predictions.length; i += 1) {
             const keypoints = predictions[i].scaledMesh;
 
@@ -171,16 +192,18 @@ class Virus {
                 poly[j] = createVector(keypoints[borderline[j]][0], keypoints[borderline[j]][1]);
             }
         }
-        pop();
     
         this.hit = collideCirclePoly(this.x, this.y, this.size, poly);
 
         if (!this.in) {
             if (this.hit) {
-                this.color = color(255, 0, 0);
-                lives -= 1;
+                this.x = random(0, 640);
+                this.y = 0;
+                this.size = random(15, 30);
+                this.speed = random(2, 5); 
                 this.in = true;
-                print('hit');
+                lives -= 1;
+//                print('hit');
             }
         }
     
@@ -188,4 +211,45 @@ class Virus {
             this.in = false;
         }
     }
+    
+    
+    reset() {
+        if (this.y > height) {
+            this.x = random(0, 640);
+            this.y = 0;
+            this.size = random(15, 30);
+            this.color = color(0);
+            this.speed = random(2, 5);
+            this.hitLine = false;
+            this.hitPoint = false;  
+            score += 1;
+        }
+    }
 }
+
+
+function parseResult() {
+    let myChoice = rec.resultString.split(' ');
+    console.log(myChoice);
+
+  
+    for (let i=0; i<myChoice.length; i++) {
+        if (gameState === 'start') {
+            if (myChoice[i] === "tips") {  
+                gameState = 'tips';
+            } else if (myChoice[i] == "start") {
+                gameState = 'inGame';
+            } else if (myChoice[i] === "instruction") {
+                gameState = 'instruction';
+            }
+        } 
+        if (gameState === 'tips' || gameState === 'instruction') {
+            if (myChoice[i] === "back") {
+                gameState = 'start';
+            }
+        }
+
+    // } else if (myChoice[i] == "no") {
+    //   startGame = false;}
+    }
+} 
