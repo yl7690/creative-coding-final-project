@@ -5,3 +5,14 @@ html, body {
 canvas {
   display: block;
 }
+
+#buttons {
+    display: flex;
+    justify-content: space-around;
+    width: 960px;
+    align-items: center;
+    align-content: space-around;
+    font-family: Ubuntu Mono;
+    font-size: 14pt;
+    font-weight: bold;
+}
