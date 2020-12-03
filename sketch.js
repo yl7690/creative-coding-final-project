@@ -17,11 +17,11 @@ let intro;
 let exiting = false;
 
 //for game state;
-let startGame = false;
 let virus = [];
 let score = 0;
 let lives = 19;
 let gameState = 'start';
+let options;
 
 
 function preload() {
@@ -58,6 +58,8 @@ function setup() {
     boundingYellow = new BoundingVirus();
     boundingOrange = new BoundingVirus();
     boundingBlue = new BoundingVirus();
+    
+    
     for (let i=0; i<10; i++) {
         virus[i] = new FallingVirus();
     }
@@ -65,8 +67,8 @@ function setup() {
 
 
 function draw() {
-    print(gameState);
-    print(exiting)
+//    print(gameState);
+//    print(exiting);
     if (gameState === 'start') {
         startMenu();
     }
@@ -79,11 +81,13 @@ function draw() {
     if (gameState === 'instruction') {
         instruction();
     }
+    
+    newStates();
+    
     if (gameState === 'over') {
         sickScene();
     }
 
-    
 //    print(score)
 
 }
@@ -176,13 +180,14 @@ class Intro {
     exit() {
         this.x -= 10;
         
-        print(this.x);
+//        print(this.x);
         
         if (this.x < -this.width) {
             this.x = -this.width;
         }
     }
 }
+
 
 class BoundingVirus {
     constructor() {
@@ -258,6 +263,7 @@ function inGame() {
 
         for (let i=0; i<virus.length; i++) {
             virus[i].view();
+            virus[i].fall();
 
             virus[i].collideFace();
             virus[i].reset();
@@ -271,12 +277,86 @@ function inGame() {
             text('Lives Left: ' + lives, 20, 100);
         }
         pop();
+    }
+    
+}
 
+
+function newStates() {
+    options = round(random(0, 3));
+    
+    if (gameState === 'inGame') {
         if (lives <= 0) {
             gameState = 'over';
         }
+        
+        if (score > 20) {
+            gameState = 'challenge';
+            if (options === 0) {
+                socialDistancing();
+            } else if (options === 1) {
+                washingHands();
+            } else if (options === 2) {
+                coughing();
+            } else if (options === 3) {
+                crazyItch();
+            }
+        }
     }
-    
+}
+
+
+function socialDistancing() {
+    background('#f8f8eb');
+  
+    fill(0);
+    textAlign(CENTER);
+    textSize(48);
+    text('Maintain social distance', width/2, height/2);
+    textSize(24);
+    text('New game state is on the way...', width/2, height/2+100);
+    text('say RESTART to restart game', width/2, height-200);
+}
+
+
+function coughing() {
+    background('#f8f8eb');
+  
+    fill(0);
+    textAlign(CENTER);
+    textSize(44);
+    text('Always cover your mouth and', width/2, height/2 - 25);
+    text('nose when you cough or sneeze', width/2, height/2 + 25);
+    textSize(24);
+    text('New game state is on the way...', width/2, height/2+100);
+    text('say RESTART to restart game', width/2, height-200);
+}
+
+
+function washingHands() {
+    background('#f8f8eb');
+  
+    fill(0);
+    textAlign(CENTER);
+    textSize(48);
+    text('Wash your hands often', width/2, height/2);
+    textSize(24);
+    text('New game state is on the way...', width/2, height/2+100);
+    text('say RESTART to restart game', width/2, height-200);
+}
+
+
+function crazyItch() {
+    background('#f8f8eb');
+  
+    fill(0);
+    textAlign(CENTER);
+    textSize(44);
+    text('Avoid touching your eyes, nose,', width/2, height/2 - 25);
+    text('and mouth with unwashed hands', width/2, height/2 + 25);
+    textSize(24);
+    text('New game state is on the way...', width/2, height/2+100);
+    text('say RESTART to restart game', width/2, height-200);
 }
 
 
@@ -321,6 +401,9 @@ function sickScene() {
     textAlign(CENTER);
     textSize(48);
     text('You got sick', width/2, height/2);
+    textSize(24);
+    text('New game state is on the way...', width/2, height/2+100);
+    text('say RESTART to restart game', width/2, height-200);
 }
 
 
@@ -347,11 +430,14 @@ class FallingVirus {
         } else if (this.type === 3) {
             image(orangeVirus, this.x, this.y, this.size, this.size);
         }
+    }
         
-        print(this.type)
-
+    
+    fall() {
         this.y += this.speed;
     }
+
+
   
     
     collideFace() {
@@ -401,7 +487,7 @@ class FallingVirus {
 function parseResult() {
     let myChoice = rec.resultString.split(' ');
     console.log(myChoice);
-
+    
   
     for (let i=0; i<myChoice.length; i++) {
         if (gameState === 'start') {
@@ -419,6 +505,13 @@ function parseResult() {
         if (gameState === 'tips' || gameState === 'instruction') {
             if (myChoice[i] === "back") {
                 gameState = 'start';
+            }
+        }
+        if (gameState === 'over' || gameState === 'challenge') {
+            if (myChoice[i] === "restart") {
+                gameState = 'start';
+                score = 0;
+                lives = 19;
             }
         }
     }
