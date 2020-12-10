@@ -18,11 +18,15 @@ let colors = {
 }
 let tipsPage;
 let shop, street, shopBG;
+let beginSec = 0;
+let nowTime = 0;
+let loading = true;
 
 
 //for sound setting;
 let rec;
 let myChoice;
+let bgMusic;
 
 //Intro
 let intro;
@@ -49,6 +53,9 @@ function preload() {
     orangeVirus = loadImage('virus/orangeVirus.png');
     shopBG = loadImage('shop.png');
     street = loadImage('street.png');
+    
+    
+    bgMusic = loadSound('backgroundmusic.mp3');
 }
 
 
@@ -87,7 +94,7 @@ function setup() {
         virus[i] = new FallingVirus();
     }
     
-
+    playSound();
     
     
 }
@@ -104,7 +111,10 @@ function draw() {
 //
 //    print(gameState);
 //    print(exiting);
-    print(virus.length);
+//    print(virus.length);
+    
+//    words();
+
     if (gameState === 'start') {
         startMenu();
     }
@@ -143,7 +153,55 @@ function draw() {
     if (gameState === 'win') {
         winMenu();
     }
+    
 
+    if (loading) {
+        drawLoading();
+    }
+}
+
+
+function drawLoading() {
+    background(colors.bg);
+
+  
+    textAlign(CENTER);
+    noStroke();
+    fill(0);
+    textFont('Ubuntu Mono', 60);
+    text('Loading', width * 0.45, height * 0.45);
+
+    let nowTime = floor(millis()/1000);
+      // print(nowTime);
+      // print('begin', beginSec)
+      // print(millis())
+    
+    print(millis())
+
+    fill(0);
+    
+    if (millis() - beginSec > 0 && millis() - beginSec <1000 ) {
+        noStroke();
+        circle(width * 0.58, height * 0.44, 10);
+    }
+    
+    if (millis() - beginSec >= 1000 && millis() - beginSec <2000){
+        noStroke();
+        circle(width * 0.58, height * 0.44, 10);
+        circle(width * 0.62, height * 0.44, 10);
+        circle(width * 0.66, height * 0.44, 10);
+    }
+    
+    if (millis() - beginSec >= 2000 && millis() - beginSec <3000){
+        noStroke();
+        circle(width * 0.58, height * 0.44, 10);
+        circle(width * 0.62, height * 0.44, 10);
+        circle(width * 0.66, height * 0.44, 10);
+    }
+    
+    if (millis() - beginSec > 3000) {
+        beginSec = millis();
+    }
 }
 
 
@@ -633,6 +691,7 @@ function washingHands() {
 function modelLoaded() {
     console.log('facemesh ready');
     faceReady = true;
+    loading = false;
     
 }
 
@@ -838,8 +897,28 @@ class FallingVirus {
 }
 
 
+function words() {
+    for (let word of myChoice) {
+        textFont('Ubuntu Mono', 20);
+        text(word, 100, 100);
+    }
+}
+
+
+function playSound() {
+  if (bgMusic.isLooping() ){
+    bgMusic.stop();
+  } else {
+    bgMusic.loop();
+    bgMusic.setVolume(0.5);
+  }
+    
+    print('sound')
+}
+
+
 function parseResult() {
-    let myChoice = rec.resultString.split(' ');
+    myChoice = rec.resultString.split(' ');
     console.log(myChoice);
     
   
@@ -889,6 +968,7 @@ function parseResult() {
                 lives = 19;
                 shop.tryAgain = false;
                 shop.state = 1;
+                virus[i].reset();
                 virus.splice(10, virus.length - 10);
             }
         }
