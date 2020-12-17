@@ -26,7 +26,8 @@ let loading = true;
 //for sound setting;
 let rec;
 let myChoice;
-let bgMusicm, boop;
+let bgMusic;
+let boop;
 
 //Intro
 let intro;
@@ -41,6 +42,7 @@ let gameState = 'start';
 let options;
 let choosing = false;
 let timer;
+let pause = false;
 
 //tips page;
 
@@ -98,7 +100,6 @@ function setup() {
     
 //    playSound();
     
-    
 }
 
 
@@ -109,18 +110,19 @@ function restart() {
 
 function draw() {
 
-    print(shop.hit)
-//
-    print(gameState);
+//    print(shop.hit)
+
+//    print(gameState);
 //    print(exiting);
 //    print(virus.length);
     
 //    words();
+//    playSound();
 
     if (gameState === 'start') {
         startMenu();
     }
-    if (gameState === 'inGame') {
+    if (gameState === 'inGame' && !pause) {
         inGame();
     }
     if (gameState === 'tips') {
@@ -160,7 +162,9 @@ function draw() {
 
     if (loading) {
         drawLoading();
-    }
+    } 
+    
+//    playSound();
 }
 
 
@@ -485,6 +489,8 @@ function instruction() {
 
 function inGame() {
     background(colors.bg);
+//    playSound();
+    bgMusic.stop();
     
     let newVirus = new FallingVirus();
     if (millis() - lastTrigger >= 2000) {
@@ -932,14 +938,13 @@ function words() {
 
 
 function playSound() {
-    if (bgMusic.isLooping() ){
+    if (bgMusic.isLooping()) {
         bgMusic.stop();
     } else {
         bgMusic.loop();
-        bgMusic.setVolume(0.5);
+        bgMusic.setVolume(0.2);
     }
-    
-    print('sound')
+    print('sound');
 }
 
 
@@ -993,6 +998,14 @@ function parseResult() {
                     tipsPage.page = 1;
                     transitSound();
                 }
+            }
+        }
+        
+        if (gameState === 'inGame') {
+            if (myChoice[i] === "pause") {
+                pause = true;
+            } else if (myChoice[i] === "continue") {
+                pause = false;
             }
         }
         
