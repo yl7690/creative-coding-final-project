@@ -16,8 +16,8 @@ let colors = {
     darkBlue: '#3b5a9d',
     green: '#229a90'
 }
-let tipsPage;
-let shop, street, shopBG, path, sick, board1, board2, board3, pausePage, mic, cam;
+let tipsPage, insPage;
+let shop, street, shopBG, path, sick, board1, board2, board3, pausePage, mic, cam, tipsIcon, playIcon, insIcon, pauseIcon, continueIcon, backIcon, state1, state2, state3, micOn, micOff;
 let beginSec = 0;
 let nowTime = 0;
 let loading = true;
@@ -25,6 +25,7 @@ let loading = true;
 
 //for sound setting;
 let rec, myChoice, bgMusic, boop, gameOver, yay;
+let speaking = false;
 
 //Intro
 let intro;
@@ -55,6 +56,17 @@ function preload() {
     board3 = loadImage('pics/board3.png');
     mic = loadImage('pics/micSign.png');
     cam = loadImage('pics/camSign.png');
+    tipsIcon = loadImage('pics/tips.png');
+    insIcon = loadImage('pics/instruction.png');
+    playIcon = loadImage('pics/start.png');
+    backIcon = loadImage('pics/back.png');
+    continueIcon = loadImage('pics/continue.png');
+    pauseIcon = loadImage('pics/pause.png');
+    state1 = loadImage('pics/state1.png');
+    state2 = loadImage('pics/state2.png');
+    state3 = loadImage('pics/state3.png');
+    micOn = loadImage('pics/micOn.png');
+    micOff = loadImage('pics/micOff.png');
     
     
     bgMusic = loadSound('sound/backgroundmusic.mp3');
@@ -83,9 +95,11 @@ function setup() {
 
     rec.start(); 
     rec.onEnd = restart;
+//    rec.onResult = words();
 
     intro = new Intro();
     tipsPage = new TipsPage();
+    insPage = new Instruction();
     
     shop = new Shop();
     shopTimer = new Timer();
@@ -118,11 +132,10 @@ function draw() {
 
 //    print(shop.hit)
 
-    print(gameState);
+//    print(gameState);
 //    print(exiting);
 //    print(virus.length);
     
-
     if (gameState === 'start') {
         startMenu();
     }
@@ -179,12 +192,18 @@ function draw() {
     if (gameState === 'loseSevereWin') {
         seriousWMenu();
     }
-//    print('score', score);
-//    print('lives', lives);
+////    print('score', score);
+////    print('lives', lives);
 
     if (loading) {
         drawLoading();
     } 
+    
+    if (speaking) {
+        image(micOn, 10, height - 70, 60, 60);
+    } else if (!speaking) {
+        image(micOff, 10, height - 70, 60, 60);
+    }
     
 //    playSound();
 }
@@ -206,7 +225,8 @@ function drawLoading() {
     
     if (nowTime > 4) {
         textSize(30);
-        text('Make sure you give access to your microphone and camera before starting the game!', width * 0.125, height * 0.75, width*0.75, height/2);
+        textAlign(CENTER);
+        text('Make sure you give access to your microphone and camera before starting the game!', width * 0.5, height * 0.85, width*0.75, height*0.3);
         push();
         imageMode(CENTER);
         image(mic, width/3, height* 0.6, mic.width*0.15, mic.height*0.15);
@@ -266,14 +286,12 @@ function startMenu() {
     text('Play', width/2, height * 0.8);
     text('Tips', width-200, height * 0.8);
     
-    rectMode(CENTER);
-    rect(200, height * 0.715, 70, 70); 
-    rect(width/2, height * 0.715, 70, 70);
-    rect(width-200, height * 0.715, 70, 70);
-    fill(255);
-    text('icon', 200, height * 0.72);
-    text('icon', width/2, height * 0.72);
-    text('icon', width-200, height * 0.72);
+    push();
+    imageMode(CENTER);
+    image(insIcon, 200, height * 0.715, 70, 70); 
+    image(playIcon, width/2, height * 0.715, 70, 70);
+    image(tipsIcon, width - 200, height * 0.715, 60, 70);
+    pop();
     
     intro.view();
     
@@ -301,7 +319,7 @@ class Intro {
         rect(this.x, this.y, this.width, this. height);
         fill(0);
         noStroke();
-        rect(this.x, this.y+10, 80, 80);
+        image(tipsIcon, this.x - 25, this.y - 50, 50, 70);
         
         textAlign(CENTER);
         fill(0);
@@ -314,8 +332,8 @@ class Intro {
         text('Example:', this.x - 189, this.y-25);
         text('If you want some tips before starting the game,', this.x, this.y+75);
         text('say "tips" to enter the tips page.', this.x, this.y+100);
-        fill(255);
-        text('image', this.x, this.y+15);
+        fill(0);
+        text('Tips', this.x, this.y+40);
         fill('#0260ae');
         text('Now say EXIT to continue', this.x, this.y+155);
     }
@@ -381,8 +399,9 @@ function knowledge() {
     textFont('Bungee', 36);
     text('Things to Know', width/2 - 100, 50);
     text('Before Game Starts', width/2 + 100, 100);
-    textSize(24);
-    text('BACK', 50, 50);
+    textSize(20);
+    image(backIcon, 15, 10, 50, 50);
+    text('BACK', 43, 85);
     
     tipsPage.view();
 
@@ -486,10 +505,6 @@ class TipsPage {
             text('previous', this.triXL - 35, this.triY3+ 20);
         }
     }
-    
-    next() {
-
-    }
 }
 
 
@@ -501,18 +516,98 @@ function instruction() {
     textAlign(CENTER);
     textFont('Bungee', 48);
     text('How to Play', width/2, 100);
-    textSize(24);
-    text('BACK', 50, 50);
-    
-    
-    textFont('Ubuntu Mono', 16);
-    fill(0);
-    textAlign(LEFT);
-    text('This game is about motion and your knowledge about COVID-19. If you don’t feel confident, reading the tips page is strongly recommended.', 480, 340, width/2, height/3);
-    text('Make sure you give access to your microphone and camera. Make sure your surrounding is quite enough. This game is controlled by voice and motion. NO KEYBOARD OR MOUSE INTERACTION. When choosing between different pages or game states, read the name of the chosen page. (ex.: BACK, TIPS PAGE, START PLAYING, CONTINUE, etc)', 480, 480, width/2, height/3);
-    text('When in the playing states, where you see the character, you use your face to control its position. Notice that the camera is flipped horizontally, which means that if you want to move the character to the right, you, in the reality, have to move to the left. ', 480, 680, width/2, height/3);
+    textSize(20);
+    image(backIcon, 15, 10, 50, 50);
+    text('BACK', 43, 85);
 
+    insPage.view();
     pop();
+}
+
+
+class Instruction {
+    constructor() {
+        this.triY1 = 395;
+        this.triY2 = 370;
+        this.triY3 = 420;
+        this.triXL = 60;
+        this.triXR = width - 60;
+        this.page = 1;
+    }
+    
+    view() {
+        rectMode(CORNER);
+        noStroke();
+    
+
+        let timePassed = floor(millis()/500);
+    
+        if (timePassed % 2 === 0) {
+            this.triXL = 55;
+            this.triXR = width - 55;
+        } else if (timePassed % 2 === 1) {
+            this.triXL = 60            
+            this.triXR = width - 60;
+        }
+        
+        textFont('Ubuntu Mono', 16);
+        textAlign(LEFT);
+        if (this.page === 1) {
+            triangle(this.triXR, this.triY2, this.triXR, this.triY3, this.triXR + 35, this.triY1);
+            text('next', this.triXR, this.triY3+ 20);
+            
+
+            textFont('Ubuntu Mono', 16);
+            fill(0);
+            textAlign(LEFT);
+            text('This game is about motion and your knowledge about COVID-19. If you don’t feel confident, reading the tips page is strongly recommended.', 240, 260, width/2, height*0.2);
+            text('Make sure you give access to your microphone and camera. Make sure your surrounding is quite enough. This game is controlled by voice and motion. NO KEYBOARD OR MOUSE INTERACTION. When choosing between different pages or game states, read the name of the chosen page. (ex.: BACK, TIPS PAGE, START PLAYING, CONTINUE, etc)', 240, 530, width/2, height/3);
+            
+            push();
+            imageMode(CENTER);
+            image(mic, width/3 + 50, height* 0.6, mic.width*0.15, mic.height*0.15);
+            image(cam, width/3*2 - 50, height* 0.6, cam.width*0.18, cam.height*0.22)
+            pop();
+            
+        } else if (this.page === 2) {
+            triangle(this.triXL, this.triY2, this.triXL, this.triY3, this.triXL - 35, this.triY1);
+            triangle(this.triXR, this.triY2, this.triXR, this.triY3, this.triXR + 35, this.triY1);
+            text('next', this.triXR, this.triY3+ 20);
+            text('previous', this.triXL - 35, this.triY3+ 20);
+            
+            push();
+            imageMode(CENTER);
+            image(state1, width/2, height/2 - 50, state1.width*0.3, state1.height*0.3);
+            text('When in this game state, you use your face to control the position of the character. Your goal is to dodge the viruses until the progress bar gets full or you have no lives left. Notice that the size of the figure gets bigger when you are closer to the screen.', 245, 530, width/2, height/3);
+            
+            pop();
+
+        } else if (this.page === 3) {
+            triangle(this.triXL, this.triY2, this.triXL, this.triY3, this.triXL - 35, this.triY1);
+            triangle(this.triXR, this.triY2, this.triXR, this.triY3, this.triXR + 35, this.triY1);
+            text('next', this.triXR, this.triY3+ 20);
+            text('previous', this.triXL - 35, this.triY3+ 20);
+            
+            push();
+            imageMode(CENTER);
+            image(state2, width/2, height/2 - 50, state1.width*0.3, state1.height*0.3);
+            text('Here in this scene, as you can see, demonstrate your social distancing skills! Be as precise as possible! The position is still controlled by your motion.', 245, 530, width/2, height/3);
+            
+            pop();
+
+        }else if (this.page === 4) {
+            triangle(this.triXL, this.triY2, this.triXL, this.triY3, this.triXL - 35, this.triY1);
+            text('previous', this.triXL - 35, this.triY3+ 20);
+            
+            push();
+            imageMode(CENTER);
+            image(state3, width/2, height/2 - 50, state1.width*0.3, state1.height*0.3);
+            text('Do you know about the symptoms of COVID-19? Depending on your symptoms, decide whether to go to the hospital or go home! This scene is still motion-controlled.', 245, 530, width/2, height/3);
+            
+            pop();
+
+        }
+    }
 }
 
 
@@ -546,23 +641,28 @@ function inGame() {
         fill('#2482A4');
         textAlign(LEFT);
         textFont('Ubuntu Mono', 24);
-        text('progress', 15, 40);
-        text('Lives Left', width - 130, 40);
+        text('progress', 123.5, 70);
+        text('Lives Left', width - 145, 70);
         
         rectMode(CORNER);
         fill(colors.bg);
         rect(123.5, 21.5, 293, 23);
         fill(colors.green);
         rect(123.5, 21.5, score/60*293, 23);
-        rect(width - 336.5, 21.5, 193, 23, 40);
+        rect(width - 216.5, 21.5, 193, 23, 40);
         fill(colors.bg);
-        rect(width - 336.5, 21.5, (19 - lives)/19*200, 23);
+        rect(width - 216.5, 21.5, (19 - lives)/19*200, 23);
         stroke(colors.darkBlue);
         noFill();
         strokeWeight(7);
         rect(120, 18, 300, 30, 40);
-        rect(width - 340, 18, 200, 30, 40);
+        rect(width - 220, 18, 200, 30, 40);
 //        print(lives);
+        
+        image(pauseIcon, 25, 10, 60, 60);
+        fill(0);
+        noStroke();
+        text('Pause', 27, 90);
     }
     
 }
@@ -923,6 +1023,9 @@ class Sick {
     symptoms() {
         push();
         imageMode(CENTER);
+        
+        print('y', this.pictureY);
+        print('H', this.pictureH)
 
         if (this.type === 0) {
             image(board1, this.pictureX, this.pictureY, this.pictureW, this.pictureH);
@@ -937,6 +1040,14 @@ class Sick {
             if (this.pictureY > this.pictureH/2) {
                 this.pictureY-=10;
             }
+        }
+        
+        if (this.pictureY === 360 && this.pictureH === 720) {
+            fill(0);
+            textAlign(CENTER);
+            textFont('Ubuntu Mono', 30);
+            noStroke();
+            text('Say CONTINUE to continue', width*0.15, height - 50, width*0.7, 50);
         }
 
         if (this.scalingPic && this.pictureW > 350){
@@ -1184,14 +1295,6 @@ class FallingVirus {
 }
 
 
-function words() {
-    for (let word of myChoice) {
-        textFont('Ubuntu Mono', 20);
-        text(word, 100, 100);
-    }
-}
-
-
 function playSound() {
     if (bgMusic.isLooping()) {
         bgMusic.stop();
@@ -1233,6 +1336,12 @@ function parseResult() {
     
   
     for (let i=0; i<myChoice.length; i++) {
+        if (myChoice.length > 0) {
+            speaking = true;
+        } else if (myChoice.length === 0) {
+            speaking = false;
+        }
+        
         if (gameState === 'start') {
             if (myChoice[i] === "exit") {
                 exiting = true;
@@ -1261,12 +1370,34 @@ function parseResult() {
                     tipsPage.page = 3;
                     transitSound();
                 }
+                
+                if (insPage.page === 1) {
+                    insPage.page = 2;
+                    transitSound();
+                } else if (insPage.page === 2) {
+                    insPage.page = 3;
+                    transitSound();
+                } else if (insPage.page === 3) {
+                    insPage.page = 4;
+                    transitSound();
+                }
             } else if (myChoice[i] === "previous") {
                 if (tipsPage.page === 3) {
                     tipsPage.page = 2;
                     transitSound();
                 } else if (tipsPage.page === 2) {
                     tipsPage.page = 1;
+                    transitSound();
+                }
+                
+                if (insPage.page === 4) {
+                    insPage.page = 3;
+                    transitSound();
+                } else if (insPage.page === 3) {
+                    insPage.page = 2;
+                    transitSound();
+                } else if (insPage.page === 2) {
+                    insPage.page = 1;
                     transitSound();
                 }
             }
