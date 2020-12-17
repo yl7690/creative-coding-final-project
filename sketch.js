@@ -192,8 +192,8 @@ function draw() {
     if (gameState === 'loseSevereWin') {
         seriousWMenu();
     }
-////    print('score', score);
-////    print('lives', lives);
+//    print('score', score);
+//    print('lives', lives);
 
     if (loading) {
         drawLoading();
@@ -689,6 +689,10 @@ class PausePage {
         fill(0);
         noStroke();
         textFont('Ubuntu Mono', 28);
+        push();
+        imageMode(CENTER);
+        image(continueIcon, this.x, this.y, 60, 60);
+        pop();
         text('The game is paused.', this.x, this.y - 70);
         text('Say CONTINUE to continue', this.x, this.y + 70);
     }
