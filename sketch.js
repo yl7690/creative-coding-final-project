@@ -17,7 +17,7 @@ let colors = {
     green: '#229a90'
 }
 let tipsPage;
-let shop, street, shopBG, path, sick, board1, board2, board3, pausePage;
+let shop, street, shopBG, path, sick, board1, board2, board3, pausePage, mic, cam;
 let beginSec = 0;
 let nowTime = 0;
 let loading = true;
@@ -53,6 +53,8 @@ function preload() {
     board1 = loadImage('pics/board1.png');
     board2 = loadImage('pics/board2.png');
     board3 = loadImage('pics/board3.png');
+    mic = loadImage('pics/micSign.png');
+    cam = loadImage('pics/camSign.png');
     
     
     bgMusic = loadSound('sound/backgroundmusic.mp3');
@@ -196,34 +198,41 @@ function drawLoading() {
     noStroke();
     fill(0);
     textFont('Ubuntu Mono', 60);
-    text('Loading', width * 0.45, height * 0.45);
+    text('Loading', width * 0.45, height * 0.31);
 
     let nowTime = floor(millis()/1000);
-      // print(nowTime);
-      // print('begin', beginSec)
-      // print(millis())
+    print(nowTime);
+
     
-//    print(millis())
+    if (nowTime > 4) {
+        textSize(30);
+        text('Make sure you give access to your microphone and camera before starting the game!', width * 0.125, height * 0.75, width*0.75, height/2);
+        push();
+        imageMode(CENTER);
+        image(mic, width/3, height* 0.6, mic.width*0.15, mic.height*0.15);
+        image(cam, width/3*2, height* 0.6, cam.width*0.18, cam.height*0.22)
+        pop();
+    }
 
     fill(0);
     
     if (millis() - beginSec > 0 && millis() - beginSec <1000 ) {
         noStroke();
-        circle(width * 0.58, height * 0.44, 10);
+        circle(width * 0.58, height * 0.3, 10);
     }
     
     if (millis() - beginSec >= 1000 && millis() - beginSec <2000){
         noStroke();
-        circle(width * 0.58, height * 0.44, 10);
-        circle(width * 0.62, height * 0.44, 10);
-        circle(width * 0.66, height * 0.44, 10);
+        circle(width * 0.58, height * 0.3, 10);
+        circle(width * 0.62, height * 0.3, 10);
+        circle(width * 0.66, height * 0.3, 10);
     }
     
     if (millis() - beginSec >= 2000 && millis() - beginSec <3000){
         noStroke();
-        circle(width * 0.58, height * 0.44, 10);
-        circle(width * 0.62, height * 0.44, 10);
-        circle(width * 0.66, height * 0.44, 10);
+        circle(width * 0.58, height * 0.3, 10);
+        circle(width * 0.62, height * 0.3, 10);
+        circle(width * 0.66, height * 0.3, 10);
     }
     
     if (millis() - beginSec > 3000) {
@@ -253,9 +262,9 @@ function startMenu() {
     textStyle(BOLD);
     text('DodgeVirus', width/2, height/3);
     textFont('Ubuntu Mono', 22);
-    text('Instruction Page', 200, height * 0.8);
-    text('Start Playing', width/2, height * 0.8);
-    text('Tips Page', width-200, height * 0.8);
+    text('Instruction', 200, height * 0.8);
+    text('Play', width/2, height * 0.8);
+    text('Tips', width-200, height * 0.8);
     
     rectMode(CENTER);
     rect(200, height * 0.715, 70, 70); 
@@ -1232,7 +1241,7 @@ function parseResult() {
             if (myChoice[i] === "tips" && exiting) {  
                 gameState = 'tips';
                 transitSound();
-            } else if (myChoice[i] == "start"  && exiting) {
+            } else if (myChoice[i] == "play"  && exiting) {
                 gameState = 'inGame';
                 transitSound();
             } else if (myChoice[i] === "instruction"  && exiting) {
