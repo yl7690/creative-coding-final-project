@@ -24,10 +24,7 @@ let loading = true;
 
 
 //for sound setting;
-let rec;
-let myChoice;
-let bgMusic;
-let boop;
+let rec, myChoice, bgMusic, boop, gameOver, yay;
 
 //Intro
 let intro;
@@ -60,6 +57,8 @@ function preload() {
     
     bgMusic = loadSound('sound/backgroundmusic.mp3');
     boop = loadSound('sound/boop.mp3');
+    gameOver = loadSound('sound/gameOver.mp3');
+    yay = loadSound('sound/yay.mp3');
 }
 
 
@@ -597,6 +596,7 @@ function socialDistancing() {
         if (shop.hit) {
             gameState = 'winWin';
             shop.in = true;
+            winSound();
 //        }
     } else if (shop.lose) {
         gameState = 'winLose';
@@ -725,6 +725,7 @@ class Shop {
         
         if (!this.hit && this.characterX > 467) {
             this.lose = true;
+            gameOverSound();
         }
     }
     
@@ -976,14 +977,18 @@ class Sick {
         if (this.hitHome) {
             if (this.type === 0) {
                 gameState = 'loseMildWin';
+                winSound();
             } else if (this.type === 1 || this.type === 2) {
                 gameState = 'loseSevereLose';
+                gameOverSound();
             }
         } else if (this.hitHospital) {
             if (this.type === 0) {
                 gameState = 'loseMildLose';
+                gameOverSound();
             } else if (this.type === 1 || this.type === 2) {
                 gameState = 'loseSevereWin';
+                winSound();
             }
         }
         
@@ -1193,6 +1198,22 @@ function transitSound() {
   if (!boop.isPlaying()) {
       boop.play();
 //    gua.setVolume(0.4)
+    }
+}
+
+
+function gameOverSound() {
+  if (!gameOver.isPlaying()) {
+      gameOver.play();
+      gameOver.setLoop(false);
+    }
+}
+
+
+function winSound() {
+  if (!yay.isPlaying()) {
+      yay.play();
+      yay.setLoop(false);
     }
 }
 
