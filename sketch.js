@@ -17,7 +17,7 @@ let colors = {
     green: '#229a90'
 }
 let tipsPage;
-let shop, street, shopBG;
+let shop, street, shopBG, path;
 let beginSec = 0;
 let nowTime = 0;
 let loading = true;
@@ -26,7 +26,7 @@ let loading = true;
 //for sound setting;
 let rec;
 let myChoice;
-let bgMusic;
+let bgMusicm, boop;
 
 //Intro
 let intro;
@@ -51,11 +51,13 @@ function preload() {
     blueVirus = loadImage('virus/blueVirus.png');
     redVirus = loadImage('virus/redVirus.png');
     orangeVirus = loadImage('virus/orangeVirus.png');
-    shopBG = loadImage('shop.png');
-    street = loadImage('street.png');
+    shopBG = loadImage('pics/shop.png');
+    street = loadImage('pics/street.png');
+    path = loadImage('pics/choiceMap.png');
     
     
-    bgMusic = loadSound('backgroundmusic.mp3');
+    bgMusic = loadSound('sound/backgroundmusic.mp3');
+    boop = loadSound('sound/boop.mp3');
 }
 
 
@@ -94,7 +96,7 @@ function setup() {
         virus[i] = new FallingVirus();
     }
     
-    playSound();
+//    playSound();
     
     
 }
@@ -107,9 +109,9 @@ function restart() {
 
 function draw() {
 
-//    print(gameState)
+    print(shop.hit)
 //
-//    print(gameState);
+    print(gameState);
 //    print(exiting);
 //    print(virus.length);
     
@@ -131,15 +133,14 @@ function draw() {
         if (lives <= 0) {
             gameState = 'over';
         }
-    }
         
-    if (score > 60) {
-        gameState = 'challenge';
+        if (score > 60) {
+            gameState = 'challenge';
+        }
     }
-
 
     if (gameState === 'challenge') {
-        socialDistancing();
+        socialDistancing(); 
     }
     
 //    if (gameState === 'final') {
@@ -154,6 +155,8 @@ function draw() {
         winMenu();
     }
     
+    print('score', score);
+    print('lives', lives);
 
     if (loading) {
         drawLoading();
@@ -176,7 +179,7 @@ function drawLoading() {
       // print('begin', beginSec)
       // print(millis())
     
-    print(millis())
+//    print(millis())
 
     fill(0);
     
@@ -538,9 +541,12 @@ function socialDistancing() {
     shop.bgView();
     shop.character();
     
-    if (shop.hit) {
-        gameState = 'win';
-    } else if (!shop.hit && shop.characterX > 312 && shop.checked) {
+//    if (!shop.in) {
+        if (shop.hit) {
+            gameState = 'win';
+            shop.in = true;
+//        }
+    } else if (shop.lose) {
         gameState = 'over';
     }
 }
@@ -583,6 +589,7 @@ class Shop {
         this.hit = false;
         this.tryAgain = false;
         this.checked = false;
+        this.lose = false;
     }
     
     bgView() {
@@ -664,13 +671,34 @@ class Shop {
         scale(1.5);
         this.checked = true;
         this.hit = collidePointEllipse(312, this.dotY, this.characterX, this.characterY, 40, 60);
-    
+        
+        print('collide working');
         
         if (!this.hit && this.characterX < 312) {
             this.tryAgain = true;
-//            print('working');
         }
+        
+        if (!this.hit && this.characterX > 312) {
+            this.lose = true;
+        }
+        
         pop();
+    }
+    
+    reset() {
+        this.bgx = 960;
+        this.bgy = 0;
+        this.bgw = 960;
+        this.bgh = 720;
+        this.state = 1;
+        this.characterX = 0;
+        this.characterY = 325;
+        this.dotSize = 26;
+        this.dotY = 296;
+        this.hit = false;
+        this.tryAgain = false;
+        this.checked = false;
+        this.lose = false;
     }
 }
 
@@ -850,8 +878,6 @@ class FallingVirus {
     }
 
 
-  
-    
     collideFace() {
         for (let i = 0; i < predictions.length; i += 1) {
             const keypoints = predictions[i].scaledMesh;
@@ -906,14 +932,22 @@ function words() {
 
 
 function playSound() {
-  if (bgMusic.isLooping() ){
-    bgMusic.stop();
-  } else {
-    bgMusic.loop();
-    bgMusic.setVolume(0.5);
-  }
+    if (bgMusic.isLooping() ){
+        bgMusic.stop();
+    } else {
+        bgMusic.loop();
+        bgMusic.setVolume(0.5);
+    }
     
     print('sound')
+}
+
+
+function transitSound() {
+  if (!boop.isPlaying()) {
+      boop.play();
+//    gua.setVolume(0.4)
+    }
 }
 
 
@@ -926,29 +960,38 @@ function parseResult() {
         if (gameState === 'start') {
             if (myChoice[i] === "exit") {
                 exiting = true;
+                transitSound();
             }
             if (myChoice[i] === "tips" && exiting) {  
                 gameState = 'tips';
+                transitSound();
             } else if (myChoice[i] == "start"  && exiting) {
                 gameState = 'inGame';
+                transitSound();
             } else if (myChoice[i] === "instruction"  && exiting) {
                 gameState = 'instruction';
+                transitSound();
             }
         } 
         if (gameState === 'tips' || gameState === 'instruction') {
             if (myChoice[i] === "back") {
                 gameState = 'start';
+                transitSound();
             } else if (myChoice[i] === "next") {
                 if (tipsPage.page === 1) {
                     tipsPage.page = 2;
+                    transitSound();
                 } else if (tipsPage.page === 2) {
                     tipsPage.page = 3;
+                    transitSound();
                 }
             } else if (myChoice[i] === "previous") {
                 if (tipsPage.page === 3) {
                     tipsPage.page = 2;
+                    transitSound();
                 } else if (tipsPage.page === 2) {
                     tipsPage.page = 1;
+                    transitSound();
                 }
             }
         }
@@ -970,6 +1013,8 @@ function parseResult() {
                 shop.state = 1;
                 virus[i].reset();
                 virus.splice(10, virus.length - 10);
+                shop.reset();
+                transitSound();
             }
         }
     }
