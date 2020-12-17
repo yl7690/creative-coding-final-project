@@ -462,10 +462,10 @@ class TipsPage {
             textFont('Ubuntu Mono', 16);
             fill(0);
             textAlign(LEFT);
-            text('The virus that causes COVID-19 most commonly spreads between people who are in close contact with one another (within about 6 feet, or 2 arm lengths).', 130, 303, 330, 450);
-            text('Avoid touching your eyes, nose, and mouth with unwashed hands.', 510, 303, 330, 450);
-            text('Wash your hands often with soap and water for at least 20 seconds especially after you have been in a public place, or after blowing your nose, coughing, or sneezing. If soap and water are not readily available, use a hand sanitizer that contains at least 60% alcohol. ', 130, 528, 330, 450);
-            text('Always cover your mouth and nose with a tissue when you cough or sneeze or use the inside of your elbow and do not spit. Throw used tissues in the trash.', 510, 568, 330, 450);
+            text('The virus that causes COVID-19 most commonly spreads between people who are in close contact with one another (within about 6 feet, or 2 arm lengths).', 130, 225, 330, 450);
+            text('Avoid touching your eyes, nose, and mouth with unwashed hands.', 510, 225, 330, 450);
+            text('Wash your hands often with soap and water for at least 20 seconds especially after you have been in a public place, or after blowing your nose, coughing, or sneezing. If soap and water are not readily available, use a hand sanitizer that contains at least 60% alcohol. ', 130, 225 + this.height, 330, 450);
+            text('Always cover your mouth and nose with a tissue when you cough or sneeze or use the inside of your elbow and do not spit. Throw used tissues in the trash.', 510, 225 +this.height, 330, 450);
             text('next', this.triXR, this.triY3+ 20);
             
         } else if (this.page === 2) {
@@ -488,10 +488,10 @@ class TipsPage {
             textFont('Ubuntu Mono', 16);
             fill(0);
             textAlign(LEFT);
-            text('Be alert for symptoms. Watch for fever, cough, shortness of breath, or other symptoms of COVID-19.', 130, 303, 330, 450);
-            text('Stay home when you are sick, except to get medical care. Use a separate room and bathroom for sick household members (if possible).', 510, 303, 330, 450);
-            text('If you need emergency help, call 911,  or if someone is showing any of these signs, seek emergency medical care immediately: Trouble breathing, Persistent pain or pressure in the chest, New confusion, Inability to wake or stay awake, and Bluish lips or face.', 130, 528, 330, 450);
-            text('Most pets that have gotten sick from the virus that causes COVID-19 were infected after close contact with a person with COVID-19. Talk to your veterinarian about any health concerns you have about your pets.', 510, 548, 330, 450);
+            text('Be alert for symptoms. Watch for fever, cough, shortness of breath, or other symptoms of COVID-19.', 130, 225, 330, 450);
+            text('Stay home when you are sick, except to get medical care. Use a separate room and bathroom for sick household members (if possible).', 510, 225, 330, 450);
+            text('If you need emergency help, call 911,  or if someone is showing any of these signs, seek emergency medical care immediately: Trouble breathing, Persistent pain or pressure in the chest, New confusion, Inability to wake or stay awake, and Bluish lips or face.', 130, 225 +this.height, 330, 450);
+            text('Most pets that have gotten sick from the virus that causes COVID-19 were infected after close contact with a person with COVID-19. Talk to your veterinarian about any health concerns you have about your pets.', 510, 225 + this.height, 330, 450);
             text('next', this.triXR, this.triY3+ 20);
             text('previous', this.triXL - 35, this.triY3+ 20);
         } else if (this.page === 3) {
