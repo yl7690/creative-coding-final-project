@@ -17,7 +17,7 @@ let colors = {
     green: '#229a90'
 }
 let tipsPage;
-let shop, street, shopBG, path;
+let shop, street, shopBG, path, sick, board1, board2, board3, pausePage;
 let beginSec = 0;
 let nowTime = 0;
 let loading = true;
@@ -40,11 +40,8 @@ let score = 0;
 let lives = 19;
 let gameState = 'start';
 let options;
-let choosing = false;
-let timer;
+let shopTimer, sickTimer;
 let pause = false;
-
-//tips page;
 
 
 
@@ -56,6 +53,9 @@ function preload() {
     shopBG = loadImage('pics/shop.png');
     street = loadImage('pics/street.png');
     path = loadImage('pics/choiceMap.png');
+    board1 = loadImage('pics/board1.png');
+    board2 = loadImage('pics/board2.png');
+    board3 = loadImage('pics/board3.png');
     
     
     bgMusic = loadSound('sound/backgroundmusic.mp3');
@@ -85,8 +85,14 @@ function setup() {
 
     intro = new Intro();
     tipsPage = new TipsPage();
+    
     shop = new Shop();
-    timer = new Timer();
+    shopTimer = new Timer();
+    
+    sick = new Sick();
+    sickTimer = new Timer();
+    
+    pausePage = new PausePage();
     
     boundingRed = new BoundingVirus();
     boundingYellow = new BoundingVirus();
@@ -99,7 +105,6 @@ function setup() {
     }
     
 //    playSound();
-    
 }
 
 
@@ -112,12 +117,10 @@ function draw() {
 
 //    print(shop.hit)
 
-//    print(gameState);
+    print(gameState);
 //    print(exiting);
 //    print(virus.length);
     
-//    words();
-//    playSound();
 
     if (gameState === 'start') {
         startMenu();
@@ -132,8 +135,11 @@ function draw() {
         instruction();
     }
     if (gameState === 'inGame') {
+        if (pause) {
+            pausePage.view();
+        }
         if (lives <= 0) {
-            gameState = 'over';
+            gameState = 'sick';
         }
         
         if (score > 60) {
@@ -145,20 +151,35 @@ function draw() {
         socialDistancing(); 
     }
     
-//    if (gameState === 'final') {
-//        sickScene();
-//    }
+    if (gameState === 'sick') {
+        sickScene();
+    }
     
-    if (gameState === 'over') {
+    if (gameState === 'winLose') {
         endMenu();
     }
     
-    if (gameState === 'win') {
+    if (gameState === 'winWin') {
         winMenu();
     }
     
-    print('score', score);
-    print('lives', lives);
+    if (gameState === 'loseMildWin') {
+        mildWMenu();
+    } 
+    
+    if (gameState === 'loseMildLose') {
+        mildLMenu();
+    }
+    
+    if (gameState === 'loseSevereLose') {
+        seriousLMenu();
+    }
+    
+    if (gameState === 'loseSevereWin') {
+        seriousWMenu();
+    }
+//    print('score', score);
+//    print('lives', lives);
 
     if (loading) {
         drawLoading();
@@ -500,8 +521,7 @@ function inGame() {
     
     if (faceReady) {
         image(street, 0, 0);
-        push();
-        scale(1.5);
+        
         drawSkeleton();
 
         for (let i=0; i<virus.length; i++) {
@@ -513,7 +533,6 @@ function inGame() {
     //        print('x', virus[i].x);
     //        print('y', virus[i].y)
         }
-        pop();
         
         noStroke();
         fill('#2482A4');
@@ -541,6 +560,33 @@ function inGame() {
 }
 
 
+class PausePage {
+    constructor() {
+        this.x = width/2;
+        this.y = height/2;
+        this.width = width/2;
+        this.height = height/2;
+        this.color = color(240, 240, 240, 220);
+        this.strokeColor = '#969897';
+    }
+    
+    view() {
+        rectMode(CENTER);
+        fill(this.color, 50);
+        stroke(this.strokeColor);
+        strokeWeight(10);
+        rect(this.x, this.y, this.width, this. height);
+        
+        textAlign(CENTER);
+        fill(0);
+        noStroke();
+        textFont('Ubuntu Mono', 28);
+        text('The game is paused.', this.x, this.y - 70);
+        text('Say CONTINUE to continue', this.x, this.y + 70);
+    }
+}
+
+
 function socialDistancing() {
     background(colors.bg);
     
@@ -549,11 +595,11 @@ function socialDistancing() {
     
 //    if (!shop.in) {
         if (shop.hit) {
-            gameState = 'win';
+            gameState = 'winWin';
             shop.in = true;
 //        }
     } else if (shop.lose) {
-        gameState = 'over';
+        gameState = 'winLose';
     }
 }
 
@@ -589,9 +635,9 @@ class Shop {
         this.bgh = 720;
         this.state = 1;
         this.characterX = 0;
-        this.characterY = 325;
-        this.dotSize = 26;
-        this.dotY = 296;
+        this.characterY = 490;
+        this.dotSize = 38;
+        this.dotY = 444;
         this.hit = false;
         this.tryAgain = false;
         this.checked = false;
@@ -606,15 +652,15 @@ class Shop {
         noStroke();
         fill(0);
         if (this.state === 1) {
-            if (timer.count(1000)) {
+            if (shopTimer.count(1000)) {
                 text('You have reached your destination, the grocery shop.', 50, 50);
             } 
             
-            if (timer.count(4000)) {
+            if (shopTimer.count(4000)) {
                 text('There seems to be a long line. Get in there right now!', 50, 100);
             } 
             
-            if (timer.count(7000)) {
+            if (shopTimer.count(7000)) {
                 text('Say CONTINUE to get to the end of the line', 50, 150)
             }
         }
@@ -628,67 +674,58 @@ class Shop {
     
     character() {
         if (this.bgx === 0) {
-            push();
-            scale(1.5);
-            strokeWeight(4);
-            stroke(0);
-
-            noStroke();
-            fill(colors.green);
-            ellipse(210, this.dotY + 1, this.dotSize);
-            ellipse(104, this.dotY + 1, this.dotSize);
-            ellipse(312, this.dotY, this.dotSize);
 //            strokeWeight(4);
 //            stroke(0);
-//            point(312, this.dotY+1);
+//            point(467, this.dotY);
             for (let i = 0; i < predictions.length; i += 1) {
-    const keypoints = predictions[i].scaledMesh;
-                fill(colors.red);
-                noStroke();
+                const keypoints = predictions[i].scaledMesh;
+                
+                if (predictions[i].faceInViewConfidence > 0.9) {
+                    fill(colors.red);
+                    noStroke();
+                    print(this.characterX);
 
-                this.characterX = map(keypoints[4][0], 0, 640, 0, 400);
-//                    print(this.characterX);
-                ellipse(this.characterX, this.characterY, 40, 60);
-//                    print(keypoints[4][0]);
+                    let fakeX = map(keypoints[4][0], 0, 640, 340, 920);
+
+    //                this.characterX = map(keypoints[4][0], 0, 640, 0, 400);
+                    this.characterX = width - fakeX;
+    //                    print(this.characterX);
+                    ellipse(this.characterX, this.characterY, 60, 100);
+    //                    print(keypoints[4][0]);
+                }
+
+                textFont('Ubuntu Mono', 24);
+                fill(0);
+
+                if (this.characterX > 470) {
+                    text('Warning! Warning! You are getting to close!!',50, 50)
+                }
+                 if (this.tryAgain) {
+                    text('A 6-feet distance is enough.', 50, 100);
+                    text('Please leave some spaca for other people.', 50, 150);
+                    text('Try again!', 50, 200);
+                 }
+
+                if (!this.checked) {
+                    text('Say CHECK to check your position.', 50, 100);
+                }
             }
-            
-            textFont('Ubuntu Mono', 20);
-            fill(0);
-            
-            if (this.characterX > 316) {
-                text('Warning! Warning! You are getting to close!!',50, 50)
-            }
-             if (this.tryAgain) {
-                text('A 6-feet distance is enough.', 50, 100);
-                text('Please leave some spaca for other people.', 50, 150);
-                text('Try again!', 50, 200);
-             }
-            
-            if (!this.checked) {
-                text('Say CHECK to check your position.', 50, 100);
-            }
-            
-            pop();
         }
     }
     
     collide() {
-        push();
-        scale(1.5);
         this.checked = true;
-        this.hit = collidePointEllipse(312, this.dotY, this.characterX, this.characterY, 40, 60);
+        this.hit = collidePointEllipse(467, this.dotY, this.characterX, this.characterY, 60, 100);
         
         print('collide working');
         
-        if (!this.hit && this.characterX < 312) {
+        if (!this.hit && this.characterX < 467) {
             this.tryAgain = true;
         }
         
-        if (!this.hit && this.characterX > 312) {
+        if (!this.hit && this.characterX > 467) {
             this.lose = true;
         }
-        
-        pop();
     }
     
     reset() {
@@ -698,9 +735,9 @@ class Shop {
         this.bgh = 720;
         this.state = 1;
         this.characterX = 0;
-        this.characterY = 325;
-        this.dotSize = 26;
-        this.dotY = 296;
+        this.characterY = 490;
+        this.dotSize = 38;
+        this.dotY = 444;
         this.hit = false;
         this.tryAgain = false;
         this.checked = false;
@@ -709,24 +746,20 @@ class Shop {
 }
 
 
-function washingHands() {
-    background(colors.bg);
-  
-    fill(0);
-    textAlign(CENTER);
-    textSize(48);
-    text('Wash your hands often', width/2, height/2);
-    textSize(24);
-    text('New game state is on the way...', width/2, height/2+100);
-    text('say RESTART to restart game', width/2, height-200);
-}
-
-
 function modelLoaded() {
     console.log('facemesh ready');
     faceReady = true;
     loading = false;
-    
+}
+
+
+function pX(x) {
+    return width - map(x, 0, 640, 0, 960);
+}
+
+
+function pY(y) {
+    return map(y, 0, 480, 0, 720);
 }
 
 
@@ -737,71 +770,72 @@ function drawSkeleton() {
         const keypoints = predictions[i].scaledMesh;
 
         for (let j = 0; j < borderline.length; j++) {
-            let [x1, y1] = keypoints[borderline[j]];
             
-//            push();
-//            imageMode(CENTER);
-//            image(boy, keypoints[4][0], keypoints[4][1], 200, 200, 0, 0, 50, 50);
-//            pop();
             fill(colors.red);
             noStroke();
             
             beginShape();
-            curveVertex(keypoints[borderline[0]][0], keypoints[borderline[0]][1]); 
-            curveVertex(keypoints[borderline[1]][0], keypoints[borderline[1]][1]);
-            curveVertex(keypoints[borderline[2]][0], keypoints[borderline[2]][1]);  
-            curveVertex(keypoints[borderline[3]][0], keypoints[borderline[3]][1]);  
-            curveVertex(keypoints[borderline[4]][0], keypoints[borderline[4]][1]);  
-            curveVertex(keypoints[borderline[5]][0], keypoints[borderline[5]][1]);  
-            curveVertex(keypoints[borderline[6]][0], keypoints[borderline[6]][1]); 
-            curveVertex(keypoints[borderline[7]][0], keypoints[borderline[7]][1]);  
-            curveVertex(keypoints[borderline[8]][0], keypoints[borderline[8]][1]);  
-            curveVertex(keypoints[borderline[9]][0], keypoints[borderline[9]][1]);  
-            curveVertex(keypoints[borderline[10]][0], keypoints[borderline[10]][1]);  
-            curveVertex(keypoints[borderline[11]][0], keypoints[borderline[11]][1]);
-            curveVertex(keypoints[borderline[12]][0], keypoints[borderline[12]][1]);  
-            curveVertex(keypoints[borderline[13]][0], keypoints[borderline[13]][1]); 
-            curveVertex(keypoints[borderline[14]][0], keypoints[borderline[14]][1]); 
-            curveVertex(keypoints[borderline[15]][0], keypoints[borderline[15]][1]);  
-            curveVertex(keypoints[borderline[16]][0], keypoints[borderline[16]][1]);  
-            curveVertex(keypoints[borderline[17]][0], keypoints[borderline[17]][1]);  
-            curveVertex(keypoints[borderline[18]][0], keypoints[borderline[18]][1]);  
-            curveVertex(keypoints[borderline[19]][0], keypoints[borderline[19]][1]);  
-            curveVertex(keypoints[borderline[20]][0], keypoints[borderline[20]][1]);   curveVertex(keypoints[borderline[21]][0], keypoints[borderline[21]][1]);
-            curveVertex(keypoints[borderline[22]][0], keypoints[borderline[22]][1]);  
-            curveVertex(keypoints[borderline[23]][0], keypoints[borderline[23]][1]); 
-            curveVertex(keypoints[borderline[24]][0], keypoints[borderline[24]][1]); 
-            curveVertex(keypoints[borderline[25]][0], keypoints[borderline[25]][1]);  
-            curveVertex(keypoints[borderline[26]][0], keypoints[borderline[26]][1]);  
-            curveVertex(keypoints[borderline[27]][0], keypoints[borderline[27]][1]);  
-            curveVertex(keypoints[borderline[28]][0], keypoints[borderline[28]][1]);  
-            curveVertex(keypoints[borderline[29]][0], keypoints[borderline[29]][1]);  
-            curveVertex(keypoints[borderline[30]][0], keypoints[borderline[30]][1]);   curveVertex(keypoints[borderline[31]][0], keypoints[borderline[31]][1]);
-            curveVertex(keypoints[borderline[32]][0], keypoints[borderline[32]][1]);  
-            curveVertex(keypoints[borderline[33]][0], keypoints[borderline[33]][1]); 
-            curveVertex(keypoints[borderline[34]][0], keypoints[borderline[34]][1]); 
-            curveVertex(keypoints[borderline[35]][0], keypoints[borderline[35]][1]);  
+            curveVertex(pX(keypoints[borderline[0]][0]), pY(keypoints[borderline[0]][1])); 
+            curveVertex(pX(keypoints[borderline[1]][0]), pY(keypoints[borderline[1]][1])); 
+            curveVertex(pX(keypoints[borderline[2]][0]), pY(keypoints[borderline[2]][1])); 
+            curveVertex(pX(keypoints[borderline[3]][0]), pY(keypoints[borderline[3]][1])); 
+            curveVertex(pX(keypoints[borderline[4]][0]), pY(keypoints[borderline[4]][1])); 
+            curveVertex(pX(keypoints[borderline[5]][0]), pY(keypoints[borderline[5]][1])); 
+            curveVertex(pX(keypoints[borderline[6]][0]), pY(keypoints[borderline[6]][1])); 
+            curveVertex(pX(keypoints[borderline[7]][0]), pY(keypoints[borderline[7]][1])); 
+            curveVertex(pX(keypoints[borderline[8]][0]), pY(keypoints[borderline[8]][1])); 
+            curveVertex(pX(keypoints[borderline[9]][0]), pY(keypoints[borderline[9]][1])); 
+            curveVertex(pX(keypoints[borderline[10]][0]), pY(keypoints[borderline[10]][1])); 
+            curveVertex(pX(keypoints[borderline[11]][0]), pY(keypoints[borderline[11]][1])); 
+            curveVertex(pX(keypoints[borderline[12]][0]), pY(keypoints[borderline[12]][1])); 
+            curveVertex(pX(keypoints[borderline[13]][0]), pY(keypoints[borderline[13]][1])); 
+            curveVertex(pX(keypoints[borderline[14]][0]), pY(keypoints[borderline[14]][1])); 
+            curveVertex(pX(keypoints[borderline[15]][0]), pY(keypoints[borderline[15]][1])); 
+            curveVertex(pX(keypoints[borderline[16]][0]), pY(keypoints[borderline[16]][1])); 
+            curveVertex(pX(keypoints[borderline[17]][0]), pY(keypoints[borderline[17]][1])); 
+            curveVertex(pX(keypoints[borderline[18]][0]), pY(keypoints[borderline[18]][1])); 
+            curveVertex(pX(keypoints[borderline[19]][0]), pY(keypoints[borderline[19]][1])); 
+            curveVertex(pX(keypoints[borderline[20]][0]), pY(keypoints[borderline[20]][1])); 
+            curveVertex(pX(keypoints[borderline[21]][0]), pY(keypoints[borderline[21]][1])); 
+            curveVertex(pX(keypoints[borderline[22]][0]), pY(keypoints[borderline[22]][1])); 
+            curveVertex(pX(keypoints[borderline[23]][0]), pY(keypoints[borderline[23]][1])); 
+            curveVertex(pX(keypoints[borderline[24]][0]), pY(keypoints[borderline[24]][1])); 
+            curveVertex(pX(keypoints[borderline[25]][0]), pY(keypoints[borderline[25]][1])); 
+            curveVertex(pX(keypoints[borderline[26]][0]), pY(keypoints[borderline[26]][1])); 
+            curveVertex(pX(keypoints[borderline[27]][0]), pY(keypoints[borderline[27]][1])); 
+            curveVertex(pX(keypoints[borderline[28]][0]), pY(keypoints[borderline[28]][1])); 
+            curveVertex(pX(keypoints[borderline[29]][0]), pY(keypoints[borderline[29]][1])); 
+            curveVertex(pX(keypoints[borderline[30]][0]), pY(keypoints[borderline[30]][1])); 
+            curveVertex(pX(keypoints[borderline[31]][0]), pY(keypoints[borderline[31]][1])); 
+            curveVertex(pX(keypoints[borderline[32]][0]), pY(keypoints[borderline[32]][1])); 
+            curveVertex(pX(keypoints[borderline[33]][0]), pY(keypoints[borderline[33]][1])); 
+            curveVertex(pX(keypoints[borderline[34]][0]), pY(keypoints[borderline[34]][1])); 
+            curveVertex(pX(keypoints[borderline[35]][0]), pY(keypoints[borderline[35]][1])); 
+        
             endShape(CLOSE);
             
             
             fill(255);
-            let eyeWidthL = dist(keypoints[130][0], keypoints[130][1], keypoints[133][0], keypoints[133][1]);
-            let eyeWidthR = dist(keypoints[362][0], keypoints[362][1], keypoints[359][0], keypoints[359][1])
-            ellipse(keypoints[28][0], keypoints[28][1], eyeWidthL, eyeWidthL);
-            ellipse(keypoints[258][0], keypoints[258][1], eyeWidthR, eyeWidthR);
+            let eyeWidthL = dist(pX(keypoints[130][0]), pY(keypoints[130][1]), pX(keypoints[133][0]), pY(keypoints[133][1]));
+            let eyeWidthR = dist(pX(keypoints[362][0]), pY(keypoints[362][1]), pX(keypoints[359][0]), pY(keypoints[359][1]));
+            ellipse(pX(keypoints[28][0]), pY(keypoints[28][1]), eyeWidthL, eyeWidthL);
+            ellipse(pX(keypoints[258][0]), pY(keypoints[258][1]), eyeWidthR, eyeWidthR);
             
             fill(0);
-            ellipse(keypoints[56][0], keypoints[56][1], eyeWidthL*0.3, eyeWidthL*0.3);
-            ellipse(keypoints[286][0], keypoints[286][1], eyeWidthR*0.3, eyeWidthR*0.3);
+            ellipse(pX(keypoints[56][0]), pY(keypoints[56][1]), eyeWidthL*0.3, eyeWidthL*0.3);
+            ellipse(pX(keypoints[286][0]), pY(keypoints[286][1]), eyeWidthR*0.3, eyeWidthR*0.3);
             
             strokeWeight(10);
             stroke(colors.red);
-            line(keypoints[140][0], keypoints[140][1], keypoints[140][0], keypoints[140][1] + 30);
-            line(keypoints[378][0], keypoints[378][1], keypoints[378][0], keypoints[378][1] + 30);
-            line(keypoints[93][0], keypoints[93][1], keypoints[93][0] - 20, keypoints[93][1] + 20);
-            line(keypoints[323][0], keypoints[323][1], keypoints[323][0] + 20, keypoints[323][1] + 20);
+            line(pX(keypoints[140][0]), pY(keypoints[140][1]), pX(keypoints[140][0]), pY(keypoints[140][1] + 30));
+            line(pX(keypoints[378][0]), pY(keypoints[378][1]), pX(keypoints[378][0]), pY(keypoints[378][1] + 30));
+            line(pX(keypoints[93][0]), pY(keypoints[93][1]), pX(keypoints[93][0] - 20), pY(keypoints[93][1] + 20));
+            line(pX(keypoints[323][0]), pY(keypoints[323][1]), pX(keypoints[323][0] + 20), pY(keypoints[323][1] + 20));
 
-            
+            if (predictions[i].faceInViewConfidence < 0.9) {
+                pause = true;
+            }
+        
       
 //            if (j < borderline.length-1) {
 //                line(x1, y1, keypoints[borderline[j+1]][0], keypoints[borderline[j+1]][1]);
@@ -812,17 +846,224 @@ function drawSkeleton() {
 }
 
 
-//function sickScene() {
-//    background(colors.bg);
-//  
-//    fill(0);
-//    textAlign(CENTER);
-//    textSize(48);
-//    text('You got sick', width/2, height/2);
-//    textSize(24);
-//    text('New game state is on the way...', width/2, height/2+100);
-//    text('say RESTART to restart game', width/2, height-200);
-//}
+function sickScene() {
+    background(colors.bg);
+  
+    sick.transit();
+    
+    if (sick.continue) {
+        sick.bgView();
+        sick.symptoms();
+    }
+    
+    
+    if (sick.scalingPic){
+        sick.character(); 
+        sick.collide();
+    }
+}
+
+
+class Sick {
+    constructor() {
+        this.bgx = 0;
+        this.bgy = 0;
+        this.bgw = 960;
+        this.bgh = 720;
+        this.characterX = 0;
+        this.characterY = 300;
+        this.hitHome = false;
+        this.hitHospital = false;
+        this.type = floor(random(3));
+        this.pictureW = 648.75;
+        this.pictureH = 720;
+        this.pictureX = width/2;
+        this.pictureY = height + this.pictureH/2;
+        this.continue = false;
+        this.scalingPic = false;
+    }
+    
+    transit() {
+        fill(0);
+        textAlign(CENTER);
+        textFont('Ubuntu Mono', 30);
+        noStroke();
+        
+        if (sickTimer.count(1000)) {
+            text('OH NO! You got sick!', width*0.15, height/2 - 150, width*0.7, 50);
+        } 
+
+        if (sickTimer.count(4000)) {
+            text('Here is a list of your symptoms.', width*0.15, height/2 - 100, width*0.7, 50);
+        } 
+
+        if (sickTimer.count(7000)) {
+            text('Depending on your symptoms, decide whether you want to go home or to the hospital!', width*0.15, height/2 - 50, width*0.7, 100);
+        }
+        
+        if (sickTimer.count(9000)) {
+            text('Say CONTINUE to continue', width*0.15, height - 100, width*0.7, 50);
+        }
+    }
+    
+    bgView() {
+        image(path, 0, 0, width, height, this.bgx, this.bgy, this.bgw, this.bgh);
+    }
+    
+    symptoms() {
+        push();
+        imageMode(CENTER);
+
+        if (this.type === 0) {
+            image(board1, this.pictureX, this.pictureY, this.pictureW, this.pictureH);
+        } else if (this.type === 1) {
+            image(board2, this.pictureX, this.pictureY, this.pictureW, this.pictureH);
+        } else if (this.type === 2) {
+            image(board3, this.pictureX, this.pictureY, this.pictureW, this.pictureH);
+        }
+
+        
+        if (this.continue && !this.scalingPic) {
+            if (this.pictureY > this.pictureH/2) {
+                this.pictureY-=10;
+            }
+        }
+
+        if (this.scalingPic && this.pictureW > 350){
+            this.pictureW -= 69.2;
+            this.pictureH -= 76.8;
+        }
+        
+        if (this.pictureW < 310 && this.pictureY > this.pictureH/2 + 10) {
+            this.pictureY -= 10;
+        }
+        pop();
+    }
+    
+    character() {
+            strokeWeight(4);
+            stroke(0);
+        
+//        print('x', this.characterX);
+//        print('y', this.characterY);
+
+            for (let i = 0; i < predictions.length; i += 1) {
+    
+                if (predictions[i].faceInViewConfidence > 0.9) {
+                    const keypoints = predictions[i].scaledMesh;
+                    fill(colors.red);
+                    noStroke();
+
+                    this.characterX = width - map(keypoints[4][0], 0, 640, 190, 780);
+                
+                    if (this.characterX < 480) {
+                        this.characterY = 0.55 * this.characterX + 216;
+                    } else if (this.characterX > 480) {
+                        this.characterY = -0.63 * this.characterX + 782;
+                    } else if (this.characterX = 480) {
+                        this.characterY = 480;
+                    }
+                    ellipse(this.characterX, this.characterY, 60, 100);
+                }
+            }            
+    }
+    
+    collide() {
+        this.hitHome = collidePointEllipse(174, 279, this.characterX, this.characterY, 60, 100);
+        
+        this.hitHospital = collidePointEllipse(750, 306, this.characterX, this.characterY, 60, 100);
+        
+        if (this.hitHome) {
+            if (this.type === 0) {
+                gameState = 'loseMildWin';
+            } else if (this.type === 1 || this.type === 2) {
+                gameState = 'loseSevereLose';
+            }
+        } else if (this.hitHospital) {
+            if (this.type === 0) {
+                gameState = 'loseMildLose';
+            } else if (this.type === 1 || this.type === 2) {
+                gameState = 'loseSevereWin';
+            }
+        }
+        
+    }
+    
+    reset() {
+        this.bgx = 0;
+        this.bgy = 0;
+        this.bgw = 960;
+        this.bgh = 720;
+        this.characterX = 0;
+        this.characterY = 300;
+        this.hitHome = false;
+        this.hitHospital = false;
+        this.type = floor(random(3));
+        this.pictureW = 648.75;
+        this.pictureH = 720;
+        this.pictureX = width/2;
+        this.pictureY = height + this.pictureH/2;
+        this.continue = false;
+        this.scalingPic = false;
+    }
+}
+
+
+function seriousWMenu() {
+    background(colors.bg);
+    image(street, 0, 0);
+  
+    fill(0);
+    textAlign(CENTER);
+    textFont('Ubuntu Mono', 48);
+    noStroke();
+    text('It looks like you got the right treatment and recovered pretty fast!', width*0.15, height/4, width*0.7, height/2);
+    textSize(24);
+    text('say RESTART to restart game', width/2, height-200);
+}
+
+
+function seriousLMenu() {
+    background(colors.bg);
+    image(street, 0, 0);
+  
+    fill(0);
+    textAlign(CENTER);
+    textFont('Ubuntu Mono', 48);
+    noStroke();
+    text('You went to the wrong place and failed to get the proper treatment in time.', width*0.15, height/4 - 20, width*0.7, height/2);
+    text('R. I. P.', width* 0.15, height/2 + 30, width*0.7, height/3);
+    textSize(24);
+    text('say RESTART to restart game', width/2, height-160);
+}
+
+
+function mildWMenu() {
+    background(colors.bg);
+    image(street, 0, 0);
+  
+    fill(0);
+    textAlign(CENTER);
+    textFont('Ubuntu Mono', 48);
+    noStroke();
+    text('Great! You recovered well at home!', width*0.15, height/2 - 100, width*0.7, height/2);
+    textSize(24);
+    text('say RESTART to restart game', width/2, height-160);
+}
+
+
+function mildLMenu() {
+    background(colors.bg);
+    image(street, 0, 0);
+  
+    fill(0);
+    textAlign(CENTER);
+    textFont('Ubuntu Mono', 48);
+    noStroke();
+    text('You went to the wrong place and wasted a chance for a severe patient to get the treatment in time...', width*0.15, height/4, width*0.7, height/2);
+    textSize(24);
+    text('say RESTART to restart game', width/2, height-160);
+}
 
 
 function endMenu() {
@@ -855,9 +1096,9 @@ function winMenu() {
 
 class FallingVirus {
     constructor() {
-        this.x = random(0, 640);
+        this.x = random(0, 960);
         this.y = 0;
-        this.size = random(15,30);
+        this.size = random(25, 30);
         this.color = color(0);
         this.speed = random(2, 5);
         this.hit = false; 
@@ -889,7 +1130,7 @@ class FallingVirus {
             const keypoints = predictions[i].scaledMesh;
 
             for (let j = 0; j < borderline.length; j += 1) {
-                poly[j] = createVector(keypoints[borderline[j]][0], keypoints[borderline[j]][1]);
+                poly[j] = createVector(pX(keypoints[borderline[j]][0]), pY(keypoints[borderline[j]][1]));
             }
         }
     
@@ -897,9 +1138,9 @@ class FallingVirus {
 
         if (!this.in) {
             if (this.hit) {
-                this.x = random(0, 640);
+                this.x = random(0, 960);
                 this.y = 0;
-                this.size = random(15, 30);
+                this.size = random(25, 40);
                 this.speed = random(2, 5); 
                 this.in = true;
                 lives -= 1;
@@ -915,9 +1156,9 @@ class FallingVirus {
     
     reset() {
         if (this.y > height) {
-            this.x = random(0, 640);
+            this.x = random(0, 960);
             this.y = 0;
-            this.size = random(15, 30);
+            this.size = random(25, 40);
             this.color = color(0);
             this.speed = random(2, 5);
             this.hitLine = false;
@@ -1004,8 +1245,10 @@ function parseResult() {
         if (gameState === 'inGame') {
             if (myChoice[i] === "pause") {
                 pause = true;
+                transitSound();
             } else if (myChoice[i] === "continue") {
                 pause = false;
+                transitSound();
             }
         }
         
@@ -1017,7 +1260,19 @@ function parseResult() {
             }
         }
         
-        if (gameState === 'over' || gameState === 'win') {
+        if (gameState === 'sick') {
+            if (myChoice[i] === "continue") {
+                if(!sick.continue) {
+                    sick.continue = true;
+                    transitSound();
+                } else if (sick.continue && sick.pictureY === 360) {
+                    sick.scalingPic = true;
+                    transitSound();
+                }
+            }
+        }
+        
+        if (gameState === 'winWin' || gameState === 'winLose' || gameState === 'loseMildLose' || gameState === 'loseMildWin' || gameState === 'loseSevereLose' || gameState === 'loseSevereWin') {
             if (myChoice[i] === "restart") {
                 gameState = 'start';
                 score = 0;
@@ -1027,6 +1282,7 @@ function parseResult() {
                 virus[i].reset();
                 virus.splice(10, virus.length - 10);
                 shop.reset();
+                sick.reset();
                 transitSound();
             }
         }
